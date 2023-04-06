@@ -38,12 +38,19 @@ namespace NCL {
 
 		const Maths::Matrix4* GetJointData(unsigned int frame) const;
 
+		void SolveIK(unsigned int frame);
+
+		void AddEffectorJoint(unsigned int effectorJoint) {
+			effectorJoints.push_back(effectorJoint);
+		}
+
 	protected:
 		unsigned int	jointCount;
 		unsigned int	frameCount;
 		float			frameRate;
 
 		std::vector<Maths::Matrix4>		allJoints;
+		std::vector<unsigned int> effectorJoints;
 	};
 }
 

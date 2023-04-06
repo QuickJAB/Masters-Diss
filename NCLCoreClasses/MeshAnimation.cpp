@@ -67,3 +67,20 @@ const Matrix4* MeshAnimation::GetJointData(unsigned int frame) const {
 
 	return dataStart + matStart;
 }
+
+void MeshAnimation::SolveIK(unsigned int frame) {
+	if (frame >= frameCount) return;
+
+	int skeletonStart = frame * jointCount;
+	Matrix4* firstJoint = (Matrix4*)allJoints.data();
+	Matrix4* skeleton = firstJoint + skeletonStart;
+
+	for (size_t i = 0; i < effectorJoints.size(); i++) {
+		Matrix4 effectorJoint = skeleton[effectorJoints.at(i)];
+
+		// Perform calculations here
+		effectorJoint = Matrix4();
+
+		allJoints.at(skeletonStart + effectorJoints.at(i)) = effectorJoint;
+	}
+}

@@ -15,6 +15,9 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("idle", new MeshAnimation("AJIdle.anm")));
 	animations.insert(std::make_pair("run", new MeshAnimation("AJRun.anm")));
 	
+	// TEMPORARY HARD CODE TEST
+	//for (int i = 0; i < 15; i++) animations.at("idle")->AddEffectorJoint(i);
+
 	animCon = new AnimationController(this, animations);
 
 	float radius = 1.0f;
@@ -47,4 +50,8 @@ AnimatedObject::~AnimatedObject() {
 
 void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
+
+	if (!isMoving) {
+		((MeshAnimation*)animCon->GetCurrentAnimation())->SolveIK(animCon->GetCurrentFrame());
+	}
 }
