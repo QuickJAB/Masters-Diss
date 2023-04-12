@@ -64,15 +64,24 @@ void AnimatedObject::Update(float dt) {
 		//	std::cout << std::endl;
 		//}
 
-		int jointID = 21;
+
+		// Right leg
+		int jointID = 28;
 		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 		vector<int> parents = renderObject->GetMesh()->GetJointParents();
-
+		unsigned int curFrame = animCon->GetCurrentFrame();
 		do {
-			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(animCon->GetCurrentFrame(), jointID, Matrix4());
+			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, jointID, Matrix4());
 			jointID = parents.at(jointID);
 		} while (jointID != -1);
+		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, 19, Matrix4()); // Confused what this is
 
-		renderObject->GetMesh()->SetBindPose(bindPose);
+		// Left leg
+		jointID = 29;
+		do {
+			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, jointID, Matrix4());
+			jointID = parents.at(jointID);
+		} while (jointID != -1);
+		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, 21, Matrix4());  // Confused what this is
 	}
 }
