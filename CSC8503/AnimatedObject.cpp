@@ -52,6 +52,27 @@ void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
 
 	if (!isMoving) {
-		((MeshAnimation*)animCon->GetCurrentAnimation())->SolveIK(animCon->GetCurrentFrame());
+		//vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+		//for (int i = 0; i < 82; i++) {
+		//	std::cout << i << ", ";
+		//	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+		//	int jointID = i;
+		//	while (parents.at(jointID) != -1) {
+		//		std::cout << parents.at(jointID) << ", ";
+		//		jointID = parents.at(jointID);
+		//	}
+		//	std::cout << std::endl;
+		//}
+
+		int jointID = 21;
+		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+		vector<int> parents = renderObject->GetMesh()->GetJointParents();
+
+		do {
+			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(animCon->GetCurrentFrame(), jointID, Matrix4());
+			jointID = parents.at(jointID);
+		} while (jointID != -1);
+
+		renderObject->GetMesh()->SetBindPose(bindPose);
 	}
 }
