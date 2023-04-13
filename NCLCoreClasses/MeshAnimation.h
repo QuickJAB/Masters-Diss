@@ -40,19 +40,12 @@ namespace NCL {
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
 
-		//void SolveIK(unsigned int frame);
-
-		//void AddEffectorJoint(unsigned int effectorJoint) {
-		//	effectorJoints.push_back(effectorJoint);
-		//}
-
 	protected:
 		unsigned int	jointCount;
 		unsigned int	frameCount;
 		float			frameRate;
 
 		std::vector<Maths::Matrix4>		allJoints;
-		//std::vector<unsigned int> effectorJoints;
 	};
 }
 

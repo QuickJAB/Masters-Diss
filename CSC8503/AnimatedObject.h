@@ -20,6 +20,8 @@ namespace NCL {
 		private:
 			AnimationController* animCon;
 			bool isMoving = false;
+
+			vector<unsigned int> effectorJoints;
 		};
 	}
 }

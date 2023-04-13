@@ -15,8 +15,13 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("idle", new MeshAnimation("AJIdle.anm")));
 	animations.insert(std::make_pair("run", new MeshAnimation("AJRun.anm")));
 	
-	// TEMPORARY HARD CODE TEST
-	//for (int i = 0; i < 15; i++) animations.at("idle")->AddEffectorJoint(i);
+	// Right leg end joints
+	effectorJoints.push_back(28);
+	effectorJoints.push_back(19); // On the same level as the joint above
+	
+	// Left leg end joints
+	effectorJoints.push_back(29);
+	effectorJoints.push_back(21); // On the same level as the joint above
 
 	animCon = new AnimationController(this, animations);
 
@@ -52,36 +57,16 @@ void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
 
 	if (!isMoving) {
-		//vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-		//for (int i = 0; i < 82; i++) {
-		//	std::cout << i << ", ";
-		//	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-		//	int jointID = i;
-		//	while (parents.at(jointID) != -1) {
-		//		std::cout << parents.at(jointID) << ", ";
-		//		jointID = parents.at(jointID);
-		//	}
-		//	std::cout << std::endl;
-		//}
-
-
-		// Right leg
-		int jointID = 28;
 		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 		vector<int> parents = renderObject->GetMesh()->GetJointParents();
 		unsigned int curFrame = animCon->GetCurrentFrame();
-		do {
-			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, jointID, Matrix4());
-			jointID = parents.at(jointID);
-		} while (jointID != -1);
-		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, 19, Matrix4()); // Confused what this is
 
-		// Left leg
-		jointID = 29;
-		do {
-			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, jointID, Matrix4());
-			jointID = parents.at(jointID);
-		} while (jointID != -1);
-		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, 21, Matrix4());  // Confused what this is
+		for (size_t i = 0; i < effectorJoints.size(); i++) {
+			unsigned int currentJoint = effectorJoints.at(i);
+			do {
+				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, Matrix4());
+				currentJoint = parents.at(currentJoint);
+			} while (currentJoint != -1);
+		}
 	}
 }
