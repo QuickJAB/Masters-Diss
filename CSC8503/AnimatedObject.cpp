@@ -16,12 +16,12 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("run", new MeshAnimation("AJRun.anm")));
 	
 	// Right leg end joints
-	effectorJoints.push_back(28);
-	effectorJoints.push_back(19); // On the same level as the joint above
+	effectorJointChain.emplace(28, 2);
+	effectorJointChain.emplace(19, 2); // On the same level as the joint above
 	
 	// Left leg end joints
-	effectorJoints.push_back(29);
-	effectorJoints.push_back(21); // On the same level as the joint above
+	effectorJointChain.emplace(29, 3);
+	effectorJointChain.emplace(21, 3); // On the same level as the joint above
 
 	animCon = new AnimationController(this, animations);
 
@@ -61,12 +61,15 @@ void AnimatedObject::Update(float dt) {
 		vector<int> parents = renderObject->GetMesh()->GetJointParents();
 		unsigned int curFrame = animCon->GetCurrentFrame();
 
-		for (size_t i = 0; i < effectorJoints.size(); i++) {
-			unsigned int currentJoint = effectorJoints.at(i);
+		for (auto& jointChain : effectorJointChain) {
+			unsigned int currentJoint = jointChain.first;
 			do {
-				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, Matrix4());
+				// Calculate new position
+				Matrix4 position = Matrix4();
+
+				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
 				currentJoint = parents.at(currentJoint);
-			} while (currentJoint != -1);
+			} while (currentJoint != jointChain.second);
 		}
 	}
 }

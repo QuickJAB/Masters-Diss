@@ -21,7 +21,7 @@ namespace NCL {
 			AnimationController* animCon;
 			bool isMoving = false;
 
-			vector<unsigned int> effectorJoints;
+			std::unordered_map<unsigned int, unsigned int> effectorJointChain;
 		};
 	}
 }
