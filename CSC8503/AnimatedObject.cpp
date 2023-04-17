@@ -29,11 +29,12 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	float height = 3.0f;
 	float inverseMass = 0.9f;
 
-	CapsuleVolume* volume = new CapsuleVolume(height, radius);
+	//CapsuleVolume* volume = new CapsuleVolume(height, radius);
+	SphereVolume* volume = new SphereVolume(height);
 	SetBoundingVolume((CollisionVolume*)volume);
 
 	GetTransform()
-		.SetScale(Vector3(radius * 2, height * 0.8, radius * 2))
+		.SetScale(Vector3(radius * 2, height, radius * 2))
 		.SetPosition(position);
 
 	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("Aj_Tpose.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
