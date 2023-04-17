@@ -75,12 +75,19 @@ void AnimatedObject::Update(float dt) {
 
 			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E)) Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0) * 2, { 0, 0, 1, 1 }, 3);
 
-			if (closestCollision.rayDistance > 1.0f) {
+			if (closestCollision.rayDistance > 3.0f) {
 				do {
 					// Calculate new position
 					Matrix4 position = Matrix4();
+					//Matrix4 position = closestCollision.collidedAt; need to figure this outs
 
 					((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+					currentJoint = parents.at(currentJoint);
+				} while (currentJoint != jointChain.second);
+			}
+			else {
+				do {
+					((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
 					currentJoint = parents.at(currentJoint);
 				} while (currentJoint != jointChain.second);
 			}

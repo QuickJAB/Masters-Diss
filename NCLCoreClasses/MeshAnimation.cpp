@@ -19,6 +19,7 @@ MeshAnimation::MeshAnimation(unsigned int jointCount, unsigned int frameCount, f
 	this->frameCount = frameCount;
 	this->frameRate  = frameRate;
 	this->allJoints  = frames;
+	this->originalJoints  = frames;
 }
 
 MeshAnimation::MeshAnimation(const std::string& filename) : MeshAnimation() {
@@ -49,6 +50,7 @@ MeshAnimation::MeshAnimation(const std::string& filename) : MeshAnimation() {
 				}
 			}
 			allJoints.emplace_back(mat);
+			originalJoints.emplace_back(mat);
 		}
 	}
 }
@@ -73,4 +75,11 @@ void MeshAnimation::SetJointValue(unsigned int frame, unsigned int joint, Matrix
 
 	int matStart = (frame * jointCount) + joint;
 	allJoints.at(matStart) = value;
+}
+
+void MeshAnimation::ResetJointValue(unsigned int frame, unsigned int joint) {
+	if (frame >= frameCount) return;
+
+	int matStart = (frame * jointCount) + joint;
+	allJoints.at(matStart) = originalJoints.at(matStart);
 }

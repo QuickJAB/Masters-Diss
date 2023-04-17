@@ -39,6 +39,7 @@ namespace NCL {
 		const Maths::Matrix4* GetJointData(unsigned int frame) const;
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
+		void ResetJointValue(unsigned int frame, unsigned int joint);
 
 	protected:
 		unsigned int	jointCount;
@@ -46,6 +47,7 @@ namespace NCL {
 		float			frameRate;
 
 		std::vector<Maths::Matrix4>		allJoints;
+		std::vector<Maths::Matrix4>		originalJoints;
 	};
 }
 
