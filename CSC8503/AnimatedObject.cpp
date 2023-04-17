@@ -54,22 +54,36 @@ AnimatedObject::~AnimatedObject() {
 }
 
 void AnimatedObject::Update(float dt) {
+	if (world == nullptr) return;
+	
 	animCon->Update(dt);
 
 	if (!isMoving) {
 		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+		vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 		vector<int> parents = renderObject->GetMesh()->GetJointParents();
 		unsigned int curFrame = animCon->GetCurrentFrame();
 
 		for (auto& jointChain : effectorJointChain) {
 			unsigned int currentJoint = jointChain.first;
-			do {
-				// Calculate new position
-				Matrix4 position = Matrix4();
 
-				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
-				currentJoint = parents.at(currentJoint);
-			} while (currentJoint != jointChain.second);
+			Vector3 jointWorldSpace = GetTransform().GetPosition() + (bindPose.at(currentJoint) * invBindPose.at(parents.at(currentJoint))).GetPositionVector();
+
+			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
+			RayCollision closestCollision;
+			world->Raycast(ray, closestCollision, true, this);
+
+			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E)) Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0) * 2, { 0, 0, 1, 1 }, 3);
+
+			if (closestCollision.rayDistance > 1.0f) {
+				do {
+					// Calculate new position
+					Matrix4 position = Matrix4();
+
+					((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+					currentJoint = parents.at(currentJoint);
+				} while (currentJoint != jointChain.second);
+			}
 		}
 	}
 }

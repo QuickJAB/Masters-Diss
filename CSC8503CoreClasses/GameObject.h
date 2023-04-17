@@ -8,6 +8,7 @@ namespace NCL::CSC8503 {
 	class NetworkObject;
 	class RenderObject;
 	class PhysicsObject;
+	class GameWorld;
 
 	class GameObject {
 	public:
@@ -26,6 +27,10 @@ namespace NCL::CSC8503 {
 
 		bool IsActive() const {
 			return isActive;
+		}
+
+		void SetGameWorld(GameWorld* w) {
+			world = w;
 		}
 
 		Transform& GetTransform() {
@@ -117,6 +122,7 @@ namespace NCL::CSC8503 {
 		PhysicsObject* physicsObject;
 		RenderObject* renderObject;
 		NetworkObject* networkObject;
+		GameWorld* world;
 
 		bool		isActive;
 		int			worldID;

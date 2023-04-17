@@ -160,7 +160,7 @@ void TutorialGame::InitWorld() {
 
 	AddStairsToWorld({ 40, 3, 40 }, { 5, 3, 10 }, 10);
 
-	lockedObject = AddPlayerToWorld({ 0, 10, 0 });
+	lockedObject = AddPlayerToWorld({ 0, 5, 0 });
 }
 
 void TutorialGame::AddFloorToWorld(const Vector3& position) {
@@ -197,6 +197,7 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, const Vector3&
 
 GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 	AnimatedObject* character = new AnimatedObject(position, renderer);
+	character->SetGameWorld(world);
 
 	world->AddGameObject(character);
 
