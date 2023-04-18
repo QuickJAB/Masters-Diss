@@ -25,16 +25,14 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 
 	animCon = new AnimationController(this, animations);
 
-	float radius = 1.0f;
-	float height = 3.0f;
+	float radius = 2.0f;
 	float inverseMass = 0.9f;
 
-	//CapsuleVolume* volume = new CapsuleVolume(height, radius);
-	SphereVolume* volume = new SphereVolume(height);
+	SphereVolume* volume = new SphereVolume(radius);
 	SetBoundingVolume((CollisionVolume*)volume);
 
 	GetTransform()
-		.SetScale(Vector3(radius * 2, height, radius * 2))
+		.SetScale(Vector3(radius, radius, radius))
 		.SetPosition(position);
 
 	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("Aj_Tpose.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
@@ -54,44 +52,46 @@ AnimatedObject::~AnimatedObject() {
 	delete animCon;
 }
 
-void AnimatedObject::Update(float dt) {
+void AnimatedObject::SolveIK() {
 	if (world == nullptr) return;
-	
-	animCon->Update(dt);
 
-	if (!isMoving) {
-		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-		vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
-		vector<int> parents = renderObject->GetMesh()->GetJointParents();
-		unsigned int curFrame = animCon->GetCurrentFrame();
+	vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+	vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
+	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	unsigned int curFrame = animCon->GetCurrentFrame();
 
-		for (auto& jointChain : effectorJointChain) {
-			unsigned int currentJoint = jointChain.first;
+	for (auto& jointChain : effectorJointChain) {
+		unsigned int currentJoint = jointChain.first;
 
-			Vector3 jointWorldSpace = GetTransform().GetPosition() + (bindPose.at(currentJoint) * invBindPose.at(parents.at(currentJoint))).GetPositionVector();
+		Vector3 jointWorldSpace = GetTransform().GetPosition() + (bindPose.at(currentJoint) * invBindPose.at(parents.at(currentJoint))).GetPositionVector();
 
-			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
-			RayCollision closestCollision;
-			world->Raycast(ray, closestCollision, true, this);
+		Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
+		RayCollision closestCollision;
+		world->Raycast(ray, closestCollision, true, this);
 
-			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E)) Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0) * 2, { 0, 0, 1, 1 }, 3);
+		if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E)) Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0), { 0, 0, 1, 1 }, 3);
 
-			if (closestCollision.rayDistance > 3.0f) {
-				do {
-					// Calculate new position
-					Matrix4 position = Matrix4();
-					//Matrix4 position = closestCollision.collidedAt; need to figure this outs
+		if (closestCollision.rayDistance > 3.0f) {
+			do {
+				// Calculate new position
+				//Matrix4 position = invBindPose.at(currentJoint) * Matrix4::Translation(closestCollision.collidedAt);
+				Matrix4 position = Matrix4::Translation(closestCollision.collidedAt - GetTransform().GetPosition()) * bindPose.at(parents.at(currentJoint));
 
-					((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
-					currentJoint = parents.at(currentJoint);
-				} while (currentJoint != jointChain.second);
-			}
-			else {
-				do {
-					((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
-					currentJoint = parents.at(currentJoint);
-				} while (currentJoint != jointChain.second);
-			}
+				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+				currentJoint = parents.at(currentJoint);
+			} while (currentJoint != jointChain.second);
+		}
+		else {
+			do {
+				((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
+				currentJoint = parents.at(currentJoint);
+			} while (currentJoint != jointChain.second);
 		}
 	}
+}
+
+void AnimatedObject::Update(float dt) {
+	animCon->Update(dt);
+
+	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f) SolveIK();
 }

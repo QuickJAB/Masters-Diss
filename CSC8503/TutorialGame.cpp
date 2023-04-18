@@ -130,12 +130,10 @@ void TutorialGame::UpdateKeys() {
 		(-rightAxis * Window::GetKeyboard()->KeyDown(KeyboardKeys::A)) +
 		(rightAxis * Window::GetKeyboard()->KeyDown(KeyboardKeys::D));
 
+	physObj->AddForce(direction * SPEED);
+
 	if (direction == Vector3()) {
-		physObj->ClearForces();
-		physObj->SetLinearVelocity(direction);
-	}
-	else {
-		physObj->AddForce(direction * SPEED);
+		physObj->SetLinearVelocity({ 0, physObj->GetLinearVelocity().y, 0 });
 	}
 }
 

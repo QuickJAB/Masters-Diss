@@ -22,7 +22,7 @@ AnimationController::AnimationController(AnimatedObject* object, const std::unor
 	});
 
 	StateTransition* idleToRun = new StateTransition(idle, run, [&](void)->bool {
-		if (this->animObj->GetPhysicsObject()->GetLinearVelocity().Length() > .1f) {
+		if (this->animObj->GetPhysicsObject()->GetLinearVelocity(false).Length() > .1f) {
 			curFrame = 0;
 			this->animObj->SetMoving(true);
 			return true;
@@ -31,7 +31,7 @@ AnimationController::AnimationController(AnimatedObject* object, const std::unor
 	});
 
 	StateTransition* runToIdle = new StateTransition(run, idle, [&](void)->bool {
-		if (this->animObj->GetPhysicsObject()->GetLinearVelocity().Length() < .1f) {
+		if (this->animObj->GetPhysicsObject()->GetLinearVelocity(false).Length() < .1f) {
 			curFrame = 0;
 			animObj->SetMoving(false);
 			return true;

@@ -17,6 +17,8 @@ namespace NCL {
 				isMoving = value;
 			}
 
+			void SolveIK();
+
 		private:
 			AnimationController* animCon;
 			bool isMoving = false;
