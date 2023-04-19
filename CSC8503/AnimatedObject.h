@@ -17,7 +17,8 @@ namespace NCL {
 				isMoving = value;
 			}
 
-			void SolveIK(const float& rayDist, const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint);
+			void SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint);
+			void ResetIK(unsigned int currentJoint, const unsigned int& endJoint);
 
 		private:
 			AnimationController* animCon;

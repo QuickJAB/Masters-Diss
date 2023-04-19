@@ -52,58 +52,62 @@ AnimatedObject::~AnimatedObject() {
 	delete animCon;
 }
 
-void AnimatedObject::SolveIK(const float& rayDist, const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
+void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
 	vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	unsigned int curFrame = animCon->GetCurrentFrame();
 	unsigned int previousJoint = 999;
+	
+	do {
+		Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition());
 
-	if (rayDist > 3.0f) {
-		do {
-			Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition());
+		if (previousJoint != 999) {
+			Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
+			position = (position - jointOffset) * bindPose.at(parents.at(currentJoint));
+		}
+		else {
+			position = position * bindPose.at(parents.at(currentJoint));
+		}
 
-			if (previousJoint != 999) {
-				Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
-				position = (position - jointOffset) * bindPose.at(parents.at(currentJoint));
-			}
-			else {
-				position = position * bindPose.at(parents.at(currentJoint));
-			}
+		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+		previousJoint = currentJoint;
+		currentJoint = parents.at(currentJoint);
+	} while (currentJoint != endJoint);
+}
 
-			((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
-			previousJoint = currentJoint;
-			currentJoint = parents.at(currentJoint);
-		} while (currentJoint != endJoint);
-	}
-	else {
-		do {
-			((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
-			previousJoint = currentJoint;
-			currentJoint = parents.at(currentJoint);
-		} while (currentJoint != endJoint);
-	}
+void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJoint) {
+	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+
+	unsigned int previousJoint = 999;
+	do {
+		((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(animCon->GetCurrentFrame(), currentJoint);
+		previousJoint = currentJoint;
+		currentJoint = parents.at(currentJoint);
+	} while (currentJoint != endJoint);
 }
 
 void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
 
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
-		vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-		vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
-		vector<int> parents = renderObject->GetMesh()->GetJointParents();
-
 		for (auto& jointChain : effectorJointChain) {
-			unsigned int currentJoint = jointChain.first;
-
-			Vector3 jointWorldSpace = GetTransform().GetPosition() + (bindPose.at(currentJoint) * invBindPose.at(parents.at(currentJoint))).GetPositionVector();
+			Vector3 jointWorldSpace = GetTransform().GetPosition() + 
+				(renderObject->GetMesh()->GetBindPose().at(jointChain.first) * 
+					renderObject->GetMesh()->GetInverseBindPose().at(renderObject->GetMesh()->GetJointParents().at(jointChain.first)))
+				.GetPositionVector();
 
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
 			world->Raycast(ray, closestCollision, true, this);
 
-			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E)) Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0), { 0, 0, 1, 1 }, 3);
+			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E))
+				Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0), { 0, 0, 1, 1 }, 3);
 
-			SolveIK(closestCollision.rayDistance, closestCollision.collidedAt, currentJoint, jointChain.second);
+			if (closestCollision.rayDistance > 3.0f) {
+				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
+			} else {
+				ResetIK(jointChain.first, jointChain.second);
+			}
 		}
 	}
 }
