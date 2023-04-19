@@ -20,6 +20,8 @@ namespace NCL {
 			void SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint);
 			void ResetIK(unsigned int currentJoint, const unsigned int& endJoint);
 
+			void DrawSkeleton();
+
 		private:
 			AnimationController* animCon;
 			bool isMoving = false;
