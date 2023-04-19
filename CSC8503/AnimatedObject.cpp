@@ -62,6 +62,7 @@ void AnimatedObject::SolveIK() {
 
 	for (auto& jointChain : effectorJointChain) {
 		unsigned int currentJoint = jointChain.first;
+		unsigned int previousJoint = 999;
 
 		Vector3 jointWorldSpace = GetTransform().GetPosition() + (bindPose.at(currentJoint) * invBindPose.at(parents.at(currentJoint))).GetPositionVector();
 
@@ -73,17 +74,25 @@ void AnimatedObject::SolveIK() {
 
 		if (closestCollision.rayDistance > 3.0f) {
 			do {
-				// Calculate new position
-				//Matrix4 position = invBindPose.at(currentJoint) * Matrix4::Translation(closestCollision.collidedAt);
-				Matrix4 position = Matrix4::Translation(closestCollision.collidedAt - GetTransform().GetPosition()) * bindPose.at(parents.at(currentJoint));
+				Matrix4 position = Matrix4::Translation(closestCollision.collidedAt - GetTransform().GetPosition());
+
+				if (previousJoint != 999) {
+					Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
+					position = (position - jointOffset) * bindPose.at(parents.at(currentJoint));
+				}
+				else {
+					position = position * bindPose.at(parents.at(currentJoint));
+				}
 
 				((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+				previousJoint = currentJoint;
 				currentJoint = parents.at(currentJoint);
 			} while (currentJoint != jointChain.second);
 		}
 		else {
 			do {
 				((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
+				previousJoint = currentJoint;
 				currentJoint = parents.at(currentJoint);
 			} while (currentJoint != jointChain.second);
 		}

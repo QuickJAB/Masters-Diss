@@ -40,6 +40,7 @@ namespace NCL {
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
 		void ResetJointValue(unsigned int frame, unsigned int joint);
+		const Maths::Matrix4 GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB);
 
 	protected:
 		unsigned int	jointCount;

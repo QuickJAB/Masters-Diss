@@ -90,6 +90,7 @@ namespace NCL::Maths {
 
 		Vector3 operator*(const Vector3& v) const;
 		Vector4 operator*(const Vector4& v) const;
+		Matrix4 operator-(const Matrix4& m) const;
 
 		//Handy string output for the matrix. Can get a bit messy, but better than nothing!
 		inline friend std::ostream& operator<<(std::ostream& o, const Matrix4& m) {

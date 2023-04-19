@@ -341,3 +341,14 @@ Vector4 Matrix4::operator*(const Vector4 &v) const {
 		v.x*array[0][3] + v.y*array[1][3] + v.z*array[2][3]  + v.w * array[3][3] 
 	);
 }
+
+Matrix4 Matrix4::operator-(const Matrix4& m) const {
+	float newMat[16] = {
+		GetRow(0).x - m.GetRow(0).x, GetRow(0).y - m.GetRow(0).y, GetRow(0).z - m.GetRow(0).z, GetRow(0).w - m.GetRow(0).w,
+		GetRow(1).x - m.GetRow(1).x, GetRow(1).y - m.GetRow(1).y, GetRow(1).z - m.GetRow(1).z, GetRow(1).w - m.GetRow(1).w,
+		GetRow(2).x - m.GetRow(2).x, GetRow(2).y - m.GetRow(2).y, GetRow(2).z - m.GetRow(2).z, GetRow(2).w - m.GetRow(2).w,
+		GetRow(3).x - m.GetRow(3).x, GetRow(3).y - m.GetRow(3).y, GetRow(3).z - m.GetRow(3).z, GetRow(3).w - m.GetRow(3).w
+	};
+	
+	return Matrix4(newMat);
+}

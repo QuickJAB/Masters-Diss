@@ -73,13 +73,21 @@ const Matrix4* MeshAnimation::GetJointData(unsigned int frame) const {
 void MeshAnimation::SetJointValue(unsigned int frame, unsigned int joint, Matrix4 value) {
 	if (frame >= frameCount) return;
 
-	int matStart = (frame * jointCount) + joint;
-	allJoints.at(matStart) = value;
+	int poseJoint = (frame * jointCount) + joint;
+	allJoints.at(poseJoint) = value;
 }
 
 void MeshAnimation::ResetJointValue(unsigned int frame, unsigned int joint) {
 	if (frame >= frameCount) return;
 
-	int matStart = (frame * jointCount) + joint;
-	allJoints.at(matStart) = originalJoints.at(matStart);
+	int poseJoint = (frame * jointCount) + joint;
+	allJoints.at(poseJoint) = originalJoints.at(poseJoint);
+}
+
+const Matrix4 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB) {
+	if (frame >= frameCount) return Matrix4();
+	int poseJointA = (frame * jointCount) + jointA;
+	int poseJointB = (frame * jointCount) + jointB;
+
+	return originalJoints.at(poseJointB) - originalJoints.at(poseJointA);
 }
