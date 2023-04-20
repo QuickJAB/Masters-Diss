@@ -369,6 +369,8 @@ void MeshGeometry::CalculateInverseBindPose() {
 	for (int i = 0; i < bindPose.size(); ++i) {
 		inverseBindPose[i] = bindPose[i].Inverse();
 	}
+
+	std::cout << bindPose.size();
 }
 
 void MeshGeometry::ReadRigPose(std::ifstream& file, vector<Matrix4>& into) {
