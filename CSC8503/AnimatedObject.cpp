@@ -12,16 +12,16 @@ using namespace CSC8503;
 AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* renderer) {
 	std::unordered_map<std::string, MeshAnimation*> animations;
 
-	animations.insert(std::make_pair("idle", new MeshAnimation("AJIdle.anm")));
-	animations.insert(std::make_pair("run", new MeshAnimation("AJRun.anm")));
+	animations.insert(std::make_pair("idle", new MeshAnimation("Idle.anm")));
+	animations.insert(std::make_pair("run", new MeshAnimation("Walk.anm")));
 	
 	// Right leg end joints
-	effectorJointChain.emplace(28, 0);
-	effectorJointChain.emplace(19, 0); // On the same level as the joint above
+	//effectorJointChain.emplace(28, 0);
+	//effectorJointChain.emplace(19, 0); // On the same level as the joint above
 	
 	// Left leg end joints
-	effectorJointChain.emplace(29, 0);
-	effectorJointChain.emplace(21, 0); // On the same level as the joint above
+	//effectorJointChain.emplace(29, 0);
+	//effectorJointChain.emplace(21, 0); // On the same level as the joint above
 
 	animCon = new AnimationController(this, animations);
 
@@ -35,7 +35,7 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 		.SetScale(Vector3(radius, radius, radius))
 		.SetPosition(position);
 
-	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("Aj_Tpose.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
+	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("Idle.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
 	GetRenderObject()->SetRigged(true);
 	GetRenderObject()->SetAnimationController(animCon);
 	GetRenderObject()->SetColour({ 1, 0, 0, 1 });
@@ -96,6 +96,11 @@ void AnimatedObject::Update(float dt) {
 	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
 
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
+		DrawSkeleton();
+
+	((MeshAnimation*)animCon->GetCurrentAnimation())->FixRootPosition(animCon->GetCurrentFrame());
+
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		for (auto& jointChain : effectorJointChain) {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first) * invBindPose.at(parents.at(jointChain.first))).GetPositionVector();
@@ -104,16 +109,10 @@ void AnimatedObject::Update(float dt) {
 			RayCollision closestCollision;
 			world->Raycast(ray, closestCollision, true, this);
 
-			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::E))
-				Debug::DrawLine(jointWorldSpace, jointWorldSpace + Vector3(0, -1, 0), { 0, 0, 1, 1 }, 3);
-
-			if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
-				DrawSkeleton();
-
 			if (closestCollision.rayDistance > 3.0f) {
-				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
+				//SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
 			} else {
-				ResetIK(jointChain.first, jointChain.second);
+				//ResetIK(jointChain.first, jointChain.second);
 			}
 		}
 	}
@@ -127,7 +126,7 @@ void AnimatedObject::DrawSkeleton() {
 	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
 
-	for (int i = 0; i < 82; i++) {
+	for (int i = 0; i < 54; i++) {
 		unsigned int joint = i;
 
 		while (parents.at(joint) != -1) {
@@ -136,7 +135,7 @@ void AnimatedObject::DrawSkeleton() {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(joint) * invBindPose.at(parent)).GetPositionVector();
 
 			Matrix4 parentWorldMatrix = modelMat * bindPose.at(parent);
-			if (parent != 0) parentWorldMatrix = parentWorldMatrix * invBindPose.at(parents.at(parent));
+			//if (parent != 0) parentWorldMatrix = parentWorldMatrix * invBindPose.at(parents.at(parent));
 			Vector3 parentWorldSpace = parentWorldMatrix.GetPositionVector();
 
 			Debug::DrawLine(jointWorldSpace, parentWorldSpace, { 0, 0, 1, 1 }, 5);

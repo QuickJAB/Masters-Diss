@@ -90,7 +90,7 @@ namespace NCL {
 		}
 
 		unsigned int GetJointCount() const {
-			return (unsigned int)jointNames.size();
+			return (unsigned int)bindPoseIndices.size();
 		}
 
 		unsigned int GetSubMeshCount() const {

@@ -70,6 +70,15 @@ const Matrix4* MeshAnimation::GetJointData(unsigned int frame) const {
 	return dataStart + matStart;
 }
 
+const Matrix4 MeshAnimation::GetJoint(unsigned int frame, unsigned int id) const {
+	if (frame >= frameCount) {
+		return nullptr;
+	}
+	int matStart = frame * jointCount;
+
+	return (allJoints.data())[matStart + id];
+}
+
 void MeshAnimation::SetJointValue(unsigned int frame, unsigned int joint, Matrix4 value) {
 	if (frame >= frameCount) return;
 
@@ -90,4 +99,11 @@ const Matrix4 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int joi
 	int poseJointB = (frame * jointCount) + jointB;
 
 	return originalJoints.at(poseJointB) - originalJoints.at(poseJointA);
+}
+
+void MeshAnimation::FixRootPosition(unsigned int frame) {
+	if (frame >= frameCount) return;
+
+	int poseJoint = (frame * jointCount);
+	allJoints.at(poseJoint) = originalJoints.at(0);
 }
