@@ -91,12 +91,14 @@ void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJ
 void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
 
+	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
+	const Matrix4 modelMat = GetTransform().GetMatrix();
+
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		for (auto& jointChain : effectorJointChain) {
-			Vector3 jointWorldSpace = (GetTransform().GetMatrix() *
-				(renderObject->GetMesh()->GetBindPose().at(jointChain.first) * 
-					renderObject->GetMesh()->GetInverseBindPose().at(renderObject->GetMesh()->GetJointParents().at(jointChain.first))))
-				.GetPositionVector();
+			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first) * invBindPose.at(parents.at(jointChain.first))).GetPositionVector();
 
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
