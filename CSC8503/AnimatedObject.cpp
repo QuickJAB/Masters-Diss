@@ -99,8 +99,6 @@ void AnimatedObject::Update(float dt) {
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
 		DrawSkeleton();
 
-	((MeshAnimation*)animCon->GetCurrentAnimation())->FixRootPosition(animCon->GetCurrentFrame());
-
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		for (auto& jointChain : effectorJointChain) {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first) * invBindPose.at(parents.at(jointChain.first))).GetPositionVector();
@@ -110,11 +108,14 @@ void AnimatedObject::Update(float dt) {
 			world->Raycast(ray, closestCollision, true, this);
 
 			if (closestCollision.rayDistance > 3.0f) {
-				//SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
+				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
 			} else {
-				//ResetIK(jointChain.first, jointChain.second);
+				ResetIK(jointChain.first, jointChain.second);
 			}
 		}
+	}
+	else {
+		((MeshAnimation*)animCon->GetCurrentAnimation())->FixRootPosition(animCon->GetCurrentFrame(), parents);
 	}
 }
 
@@ -135,7 +136,7 @@ void AnimatedObject::DrawSkeleton() {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(joint) * invBindPose.at(parent)).GetPositionVector();
 
 			Matrix4 parentWorldMatrix = modelMat * bindPose.at(parent);
-			//if (parent != 0) parentWorldMatrix = parentWorldMatrix * invBindPose.at(parents.at(parent));
+			if (parent != -1 && parents.at(parent) != -1) parentWorldMatrix = parentWorldMatrix * invBindPose.at(parents.at(parent));
 			Vector3 parentWorldSpace = parentWorldMatrix.GetPositionVector();
 
 			Debug::DrawLine(jointWorldSpace, parentWorldSpace, { 0, 0, 1, 1 }, 5);

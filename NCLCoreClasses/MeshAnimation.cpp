@@ -1,5 +1,6 @@
 #include "MeshAnimation.h"
 #include "Matrix4.h"
+#include "Vector3.h"
 #include "Assets.h"
 
 #include <fstream>
@@ -101,9 +102,16 @@ const Matrix4 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int joi
 	return originalJoints.at(poseJointB) - originalJoints.at(poseJointA);
 }
 
-void MeshAnimation::FixRootPosition(unsigned int frame) {
+void MeshAnimation::FixRootPosition(unsigned int frame, std::vector<int> parents) {
 	if (frame >= frameCount) return;
 
-	int poseJoint = (frame * jointCount);
-	allJoints.at(poseJoint) = originalJoints.at(0);
+	int joint = (frame * jointCount);
+
+	Vector3 posOffset = originalJoints.at(joint).GetPositionVector() - originalJoints.at(0).GetPositionVector();
+	Matrix4 matOffset = Matrix4::Translation({ 0, 0, posOffset.z });
+
+	for (int i = 0; i < jointCount; i++) {
+		allJoints.at(joint + i) = matOffset.Inverse() * originalJoints.at(joint + i);
+	}
+	
 }
