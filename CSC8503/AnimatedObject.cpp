@@ -16,12 +16,10 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("run", new MeshAnimation("Walk.anm")));
 	
 	// Right leg end joints
-	//effectorJointChain.emplace(28, 0);
-	//effectorJointChain.emplace(19, 0); // On the same level as the joint above
+	effectorJointChain.emplace(52, 49);
 	
 	// Left leg end joints
-	//effectorJointChain.emplace(29, 0);
-	//effectorJointChain.emplace(21, 0); // On the same level as the joint above
+	effectorJointChain.emplace(48, 45);
 
 	animCon = new AnimationController(this, animations);
 
@@ -54,27 +52,18 @@ AnimatedObject::~AnimatedObject() {
 }
 
 void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
-	vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	unsigned int curFrame = animCon->GetCurrentFrame();
 	unsigned int previousJoint = 999;
 	
 	while (currentJoint != endJoint) {
-		Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition());
-
-		if (previousJoint != 999) {
-			Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
-			position = (position - jointOffset) * bindPose.at(parents.at(currentJoint));
-		} else {
-			position = position * bindPose.at(parents.at(currentJoint));
-		}
+		Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
+		Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition()) - jointOffset;
 
 		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
 		previousJoint = currentJoint;
 		currentJoint = parents.at(currentJoint);
 	}
-
-
 }
 
 void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJoint) {
@@ -102,13 +91,13 @@ void AnimatedObject::Update(float dt) {
 
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		for (auto& jointChain : effectorJointChain) {
-			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first) * invBindPose.at(parents.at(jointChain.first))).GetPositionVector();
+			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first)).GetPositionVector();
 
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
 			world->Raycast(ray, closestCollision, true, this);
 
-			if (closestCollision.rayDistance > 3.0f) {
+			if (closestCollision.rayDistance > 1.0f) {
 				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
 			} else {
 				ResetIK(jointChain.first, jointChain.second);
@@ -121,22 +110,17 @@ void AnimatedObject::Update(float dt) {
 }
 
 void AnimatedObject::DrawSkeleton() {
-	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	const vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
+	const MeshGeometry* mesh = renderObject->GetMesh();
 
 	for (int i = 0; i < 54; i++) {
 		if (parents.at(i) == -1) continue;
-
-		Vector3 jointPos = (modelMat * bindPose.at(i) * invBindPose.at(parents.at(i))).GetPositionVector();
-		
+		Vector3 jointPos = (modelMat * bindPose.at(i)).GetPositionVector();
 		Matrix4 parentMat = bindPose.at(parents.at(i));
+		Debug::DrawLine(jointPos, (modelMat * parentMat).GetPositionVector(), {0, 0, 1, 1}, 5);
 
-		if (parents.at(parents.at(i)) != -1) {
-			Debug::DrawLine(jointPos, (modelMat * parentMat * invBindPose.at(parents.at(parents.at(i)))).GetPositionVector(), { 0, 0, 1, 1 }, 5);
-		} else {
-			Debug::DrawLine(jointPos, (modelMat * parentMat).GetPositionVector(), {0, 0, 1, 1}, 5);
-		}
+		std::cout << i << ":\t" << mesh->GetJointName(i) << std::endl;
 	}
 }

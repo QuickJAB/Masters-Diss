@@ -175,6 +175,10 @@ namespace NCL {
 
 		static MeshGeometry* GenerateTriangle(MeshGeometry* input);
 
+		const std::string GetJointName(const unsigned int jointId) const {
+			return jointNames.at(jointId);
+		}
+
 	protected:
 		MeshGeometry();
 		MeshGeometry(const std::string&filename);
