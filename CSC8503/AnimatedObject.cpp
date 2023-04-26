@@ -61,7 +61,16 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint
 	Vector3 adjustment = bindPose.at(currentJoint).GetPositionVector() - snapPoint;
 
 	while (currentJoint != endJoint) {
-		curAnim->SetJointValue(frame, currentJoint, Matrix4::Translation(adjustment) * modelMat * bindPose.at(currentJoint));
+		Matrix4 jointWorldSpace = modelMat * bindPose.at(currentJoint);
+		
+		// TODO: Determine which option is closer and then fix/improve it
+
+		// Option 1: A long streched "leg" going to the correct place
+		//curAnim->SetJointValue(frame, currentJoint, jointWorldSpace.Inverse() * Matrix4::Translation(adjustment));
+		
+		// Option 2: The leg remains intact but its scaled up and is floating above the character
+		//curAnim->SetJointValue(frame, currentJoint, Matrix4::Translation(adjustment) * jointWorldSpace);
+		
 		currentJoint = parents.at(currentJoint);
 	}
 }
