@@ -52,30 +52,18 @@ AnimatedObject::~AnimatedObject() {
 }
 
 void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
-	//vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	//unsigned int curFrame = animCon->GetCurrentFrame();
-	//unsigned int previousJoint = 999;
-	//
-	//while (currentJoint != endJoint) {
-	//	Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
-	//	Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition()) - jointOffset;
-
-	//	((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
-	//	previousJoint = currentJoint;
-	//	currentJoint = parents.at(currentJoint);
-	//}
-
+	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
+	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
+	unsigned int frame = animCon->GetCurrentFrame();
+	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	unsigned int curFrame = animCon->GetCurrentFrame();
-	const MeshGeometry* mesh = renderObject->GetMesh();
+
+	Vector3 adjustment = bindPose.at(currentJoint).GetPositionVector() - snapPoint;
 
 	while (currentJoint != endJoint) {
-		std::cout << currentJoint << ":\t" << mesh->GetJointName(currentJoint) << std::endl;
+		curAnim->SetJointValue(frame, currentJoint, Matrix4::Translation(adjustment) * modelMat * bindPose.at(currentJoint));
 		currentJoint = parents.at(currentJoint);
 	}
-	std::cout << std::endl;
-	std::cout << std::endl;
-	std::cout << std::endl;
 }
 
 void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJoint) {
@@ -96,7 +84,7 @@ void AnimatedObject::Update(float dt) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
-	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
+	const Matrix4 modelMat = GetTransform().GetMatrix();
 
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
 		DrawSkeleton();
