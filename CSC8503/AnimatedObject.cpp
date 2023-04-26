@@ -33,7 +33,8 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 
 	GetTransform()
 		.SetScale(Vector3(radius, radius, radius))
-		.SetPosition(position);
+		.SetPosition(position)
+		.SetColOffset(Vector3(0, radius, 0));
 
 	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("DummyMesh.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
 	GetRenderObject()->SetRigged(true);

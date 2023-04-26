@@ -4,6 +4,7 @@ using namespace NCL::CSC8503;
 
 Transform::Transform()	{
 	scale = Vector3(1, 1, 1);
+	colliderOffset = Vector3();
 }
 
 Transform::~Transform()	{

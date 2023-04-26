@@ -32,12 +32,22 @@ namespace NCL {
 				return matrix;
 			}
 			void UpdateMatrix();
+
+			Vector3 GetColOffset() const {
+				return colliderOffset;
+			}
+
+			void SetColOffset(Vector3 offset) {
+				colliderOffset = offset;
+			}
+
 		protected:
 			Matrix4		matrix;
 			Quaternion	orientation;
 			Vector3		position;
 
 			Vector3		scale;
+			Vector3		colliderOffset;
 		};
 	}
 }

@@ -461,7 +461,9 @@ bool CollisionDetection::AABBSphereIntersection(const AABBVolume& volumeA, const
 
 	Vector3 boxSize = volumeA.GetHalfDimensions();
 
-	Vector3 delta = worldTransformB.GetPosition() - worldTransformA.GetPosition();
+	Vector3 sphereTransform = worldTransformB.GetPosition() + worldTransformB.GetColOffset();
+
+	Vector3 delta = sphereTransform - worldTransformA.GetPosition();
 
 	Vector3 closestPointOnBox = Maths::Clamp(delta, -boxSize, boxSize);
 	Vector3 localPoint = delta - closestPointOnBox;
@@ -485,7 +487,9 @@ bool  CollisionDetection::OBBSphereIntersection(const OBBVolume& volumeA, const 
 	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
 	Vector3 boxSize = volumeA.GetHalfDimensions();
 
-	Vector3 delta = worldTransformB.GetPosition() - worldTransformA.GetPosition();
+	Vector3 sphereTransform = worldTransformB.GetPosition() + worldTransformB.GetColOffset();
+
+	Vector3 delta = sphereTransform - worldTransformA.GetPosition();
 	delta = worldTransformA.GetOrientation().Conjugate() * delta;
 
 	Vector3 closestPointOnBox = Maths::Clamp(delta, -boxSize, boxSize);
