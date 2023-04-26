@@ -122,27 +122,21 @@ void AnimatedObject::Update(float dt) {
 
 void AnimatedObject::DrawSkeleton() {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	const unsigned int frame = animCon->GetCurrentFrame();
-	const MeshAnimation* currentAnim = animCon->GetCurrentAnimation();
 	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
 
 	for (int i = 0; i < 54; i++) {
-		unsigned int joint = i;
+		if (parents.at(i) == -1) continue;
 
-		while (parents.at(joint) != -1) {
-			unsigned int parent = parents.at(joint);
-			
-			Vector3 jointWorldSpace = (modelMat * bindPose.at(joint) * invBindPose.at(parent)).GetPositionVector();
+		Vector3 jointPos = (modelMat * bindPose.at(i) * invBindPose.at(parents.at(i))).GetPositionVector();
+		
+		Matrix4 parentMat = bindPose.at(parents.at(i));
 
-			Matrix4 parentWorldMatrix = modelMat * bindPose.at(parent);
-			if (parent != -1 && parents.at(parent) != -1) parentWorldMatrix = parentWorldMatrix * invBindPose.at(parents.at(parent));
-			Vector3 parentWorldSpace = parentWorldMatrix.GetPositionVector();
-
-			Debug::DrawLine(jointWorldSpace, parentWorldSpace, { 0, 0, 1, 1 }, 5);
-
-			joint = parent;
-		}	
+		if (parents.at(parents.at(i)) != -1) {
+			Debug::DrawLine(jointPos, (modelMat * parentMat * invBindPose.at(parents.at(parents.at(i)))).GetPositionVector(), { 0, 0, 1, 1 }, 5);
+		} else {
+			Debug::DrawLine(jointPos, (modelMat * parentMat).GetPositionVector(), {0, 0, 1, 1}, 5);
+		}
 	}
 }
