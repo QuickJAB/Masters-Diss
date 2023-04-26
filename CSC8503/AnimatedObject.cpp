@@ -16,10 +16,10 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("run", new MeshAnimation("Walk.anm")));
 	
 	// Right leg end joints
-	effectorJointChain.emplace(52, 49);
+	effectorJointChain.emplace(51, 0);
 	
 	// Left leg end joints
-	effectorJointChain.emplace(48, 45);
+	effectorJointChain.emplace(47, 0);
 
 	animCon = new AnimationController(this, animations);
 
@@ -52,18 +52,30 @@ AnimatedObject::~AnimatedObject() {
 }
 
 void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
+	//vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	//unsigned int curFrame = animCon->GetCurrentFrame();
+	//unsigned int previousJoint = 999;
+	//
+	//while (currentJoint != endJoint) {
+	//	Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
+	//	Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition()) - jointOffset;
+
+	//	((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
+	//	previousJoint = currentJoint;
+	//	currentJoint = parents.at(currentJoint);
+	//}
+
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	unsigned int curFrame = animCon->GetCurrentFrame();
-	unsigned int previousJoint = 999;
-	
-	while (currentJoint != endJoint) {
-		Matrix4 jointOffset = ((MeshAnimation*)animCon->GetCurrentAnimation())->GetJointOffset(curFrame, previousJoint, currentJoint);
-		Matrix4 position = Matrix4::Translation(snapPoint - GetTransform().GetPosition()) - jointOffset;
+	const MeshGeometry* mesh = renderObject->GetMesh();
 
-		((MeshAnimation*)animCon->GetCurrentAnimation())->SetJointValue(curFrame, currentJoint, position);
-		previousJoint = currentJoint;
+	while (currentJoint != endJoint) {
+		std::cout << currentJoint << ":\t" << mesh->GetJointName(currentJoint) << std::endl;
 		currentJoint = parents.at(currentJoint);
 	}
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
 }
 
 void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJoint) {
@@ -84,11 +96,11 @@ void AnimatedObject::Update(float dt) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
-	const Matrix4 modelMat = GetTransform().GetMatrix();
+	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
 
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
 		DrawSkeleton();
-
+			
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		for (auto& jointChain : effectorJointChain) {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first)).GetPositionVector();
@@ -96,6 +108,8 @@ void AnimatedObject::Update(float dt) {
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
 			world->Raycast(ray, closestCollision, true, this);
+
+			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
 			if (closestCollision.rayDistance > 1.0f) {
 				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
@@ -112,15 +126,26 @@ void AnimatedObject::Update(float dt) {
 void AnimatedObject::DrawSkeleton() {
 	const vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-	const Matrix4 modelMat = GetTransform().GetMatrix();
-	const MeshGeometry* mesh = renderObject->GetMesh();
+	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
 
 	for (int i = 0; i < 54; i++) {
+		DisplayJointData(i);
 		if (parents.at(i) == -1) continue;
 		Vector3 jointPos = (modelMat * bindPose.at(i)).GetPositionVector();
 		Matrix4 parentMat = bindPose.at(parents.at(i));
 		Debug::DrawLine(jointPos, (modelMat * parentMat).GetPositionVector(), {0, 0, 1, 1}, 5);
-
-		std::cout << i << ":\t" << mesh->GetJointName(i) << std::endl;
 	}
+}
+
+void AnimatedObject::DisplayJointData(unsigned int joint) {
+	const vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	const MeshGeometry* mesh = renderObject->GetMesh();
+	
+	std::cout << joint << ": " << mesh->GetJointName(joint) << std::endl;
+	std::cout << "Parents: ";
+	while (parents.at(joint) != -1) {
+		std::cout << parents.at(joint) << ", ";
+		joint = parents.at(joint);
+	}
+	std::cout << std::endl;
 }

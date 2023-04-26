@@ -27,6 +27,8 @@ namespace NCL {
 			bool isMoving = false;
 
 			std::unordered_map<unsigned int, unsigned int> effectorJointChain;
+
+			void DisplayJointData(unsigned int joint);
 		};
 	}
 }
