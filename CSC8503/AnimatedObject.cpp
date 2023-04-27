@@ -51,7 +51,7 @@ AnimatedObject::~AnimatedObject() {
 	delete animCon;
 }
 
-void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
+void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& endJoint) {
 	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
 	unsigned int frame = animCon->GetCurrentFrame();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
@@ -59,29 +59,42 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint
 
 	Vector3 offset = modelMat.Inverse() * snapPoint;
 
-	while (currentJoint != endJoint) {
+	vector<bool> adjustedJoints;
+	for (int i = 0; i < (int)parents.size(); i++) {
+		adjustedJoints.push_back(false);
+	}
+
+	while (currentJoint != parents.at(endJoint)) {
 		Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
 
 		joint.SetPositionVector(offset);
 
 		curAnim->SetJointValue(frame, currentJoint, joint);
 
-		offset += curAnim->GetJointOffset(frame, currentJoint, parents.at(currentJoint));
+		if (parents.at(currentJoint) != -1) 
+			offset += curAnim->GetJointOffset(frame, currentJoint, parents.at(currentJoint));
+
+		adjustedJoints.at(currentJoint) = true;
 
 		currentJoint = parents.at(currentJoint);
 	}
+
+	for (int i = 0; i < (int)parents.size(); i++) {
+		if (adjustedJoints.at(i)) continue;
+
+		// Adjust the rest of the body
+	}
+
 }
 
-void AnimatedObject::ResetIK(unsigned int currentJoint, const unsigned int& endJoint) {
+void AnimatedObject::ResetIK() {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	unsigned int curFrame = animCon->GetCurrentFrame();
 
-	unsigned int previousJoint = 999;
-	while (currentJoint != endJoint) {
-		((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, currentJoint);
-		previousJoint = currentJoint;
-		currentJoint = parents.at(currentJoint);
+	for (int i = 0; i < parents.size(); i++) {
+		((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, i);
 	}
+
 }
 
 void AnimatedObject::Update(float dt) {
@@ -96,6 +109,7 @@ void AnimatedObject::Update(float dt) {
 		DrawSkeleton();
 			
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
+		bool reset = true;
 		for (auto& jointChain : effectorJointChain) {
 			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first)).GetPositionVector();
 
@@ -107,9 +121,11 @@ void AnimatedObject::Update(float dt) {
 
 			if (closestCollision.rayDistance > 1.0f) {
 				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
-			} else {
-				ResetIK(jointChain.first, jointChain.second);
+				reset = false;
 			}
+		}
+		if (reset) {
+			ResetIK();
 		}
 	}
 	else {

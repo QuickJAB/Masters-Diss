@@ -17,8 +17,8 @@ namespace NCL {
 				isMoving = value;
 			}
 
-			void SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint);
-			void ResetIK(unsigned int currentJoint, const unsigned int& endJoint);
+			void SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& endJoint);
+			void ResetIK();
 
 			void DrawSkeleton();
 
