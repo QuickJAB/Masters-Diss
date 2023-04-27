@@ -15,11 +15,8 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("idle", new MeshAnimation("Idle.anm")));
 	animations.insert(std::make_pair("run", new MeshAnimation("Walk.anm")));
 	
-	// Right leg end joints
-	effectorJointChain.emplace(51, 0);
-	
-	// Left leg end joints
-	effectorJointChain.emplace(47, 0);
+	effectorJoints.push_back(51);	// Right leg end joints
+	effectorJoints.push_back(47);	// Left leg end joints
 
 	animCon = new AnimationController(this, animations);
 
@@ -79,7 +76,20 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		currentJoint = parents.at(currentJoint);
 	}
 
+
 	
+	//bool allAdjusted;
+	//do {
+	//	allAdjusted = true;
+	//	for (int i = 0; i < parents.size(); i++) {
+	//		if (!adjustedJoints.at(i)) {
+	//			allAdjusted = false;
+	//			break;
+	//		}
+	//	}
+
+
+	//} while (!allAdjusted);
 
 	/*
 	Vector3 rootPos = curAnim->GetJoint(frame, 0).GetPositionVector();
@@ -125,8 +135,10 @@ void AnimatedObject::Update(float dt) {
 			
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		bool reset = true;
-		for (auto& jointChain : effectorJointChain) {
-			Vector3 jointWorldSpace = (modelMat * curAnim->GetJoint(frame, jointChain.first, true)).GetPositionVector();
+		for (unsigned int i = 0; i < 2; i++) {
+			unsigned int effector = effectorJoints.at(i);
+
+			Vector3 jointWorldSpace = (modelMat * curAnim->GetJoint(frame, effector, true)).GetPositionVector();
 
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
@@ -135,7 +147,7 @@ void AnimatedObject::Update(float dt) {
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
 			if (closestCollision.rayDistance > 0.3f && closestCollision.rayDistance < 1.0f) {
-				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
+				SolveIK( closestCollision.collidedAt, effector, 0);
 				reset = false;
 			}
 		}
