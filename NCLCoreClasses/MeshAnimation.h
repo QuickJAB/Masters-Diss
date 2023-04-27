@@ -38,7 +38,7 @@ namespace NCL {
 		}
 
 		const Maths::Matrix4* GetJointData(unsigned int frame) const;
-		const Maths::Matrix4 GetJoint(unsigned int frame, unsigned int id) const;
+		const Maths::Matrix4 GetJoint(unsigned int frame, unsigned int id, bool original = false) const;
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
 		void ResetJointValue(unsigned int frame, unsigned int joint);

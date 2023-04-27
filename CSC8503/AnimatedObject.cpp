@@ -79,10 +79,24 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		currentJoint = parents.at(currentJoint);
 	}
 
+	Vector3 rootPos = curAnim->GetJoint(frame, 0).GetPositionVector();
+
 	for (int i = 0; i < (int)parents.size(); i++) {
 		if (adjustedJoints.at(i)) continue;
 
 		// Adjust the rest of the body
+
+		Vector3 offset = rootPos;
+		int jointId = i;
+		while (parents.at(jointId) != -1) {
+			offset += curAnim->GetJointOffset(frame, jointId, parents.at(jointId));
+			jointId = parents.at(jointId);
+		}
+
+		Matrix4 joint = curAnim->GetJoint(frame, i);
+		joint.SetPositionVector(offset);
+		curAnim->SetJointValue(frame, i, joint);
+		adjustedJoints.at(i) = true;
 	}
 
 }
@@ -101,9 +115,9 @@ void AnimatedObject::Update(float dt) {
 	animCon->Update(dt);
 
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-	const vector<Matrix4> invBindPose = renderObject->GetMesh()->GetInverseBindPose();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
+	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
+	unsigned int frame = animCon->GetCurrentFrame();
 
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
 		DrawSkeleton();
@@ -111,7 +125,7 @@ void AnimatedObject::Update(float dt) {
 	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
 		bool reset = true;
 		for (auto& jointChain : effectorJointChain) {
-			Vector3 jointWorldSpace = (modelMat * bindPose.at(jointChain.first)).GetPositionVector();
+			Vector3 jointWorldSpace = (modelMat * curAnim->GetJoint(frame, jointChain.first, true)).GetPositionVector();
 
 			Ray ray = Ray(jointWorldSpace, Vector3(0, -1, 0));
 			RayCollision closestCollision;
@@ -135,15 +149,18 @@ void AnimatedObject::Update(float dt) {
 
 void AnimatedObject::DrawSkeleton() {
 	const vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
-	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
+	const Matrix4 modelMat = GetTransform().GetMatrix();
+	unsigned int frame = animCon->GetCurrentFrame();
+	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
 
 	for (int i = 0; i < 54; i++) {
 		DisplayJointData(i);
 		if (parents.at(i) == -1) continue;
-		Vector3 jointPos = (modelMat * bindPose.at(i)).GetPositionVector();
-		Matrix4 parentMat = bindPose.at(parents.at(i));
-		Debug::DrawLine(jointPos, (modelMat * parentMat).GetPositionVector(), {0, 0, 1, 1}, 5);
+		
+		Vector3 jointPos = (modelMat * curAnim->GetJoint(frame, i)).GetPositionVector();
+		Vector3 parentPos = (modelMat * curAnim->GetJoint(frame, parents.at(i))).GetPositionVector();
+		
+		Debug::DrawLine(jointPos, parentPos, {0, 0, 1, 1}, 5);
 	}
 }
 

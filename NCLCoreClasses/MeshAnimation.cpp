@@ -71,11 +71,13 @@ const Matrix4* MeshAnimation::GetJointData(unsigned int frame) const {
 	return dataStart + matStart;
 }
 
-const Matrix4 MeshAnimation::GetJoint(unsigned int frame, unsigned int id) const {
+const Matrix4 MeshAnimation::GetJoint(unsigned int frame, unsigned int id, bool original) const {
 	if (frame >= frameCount) {
 		return nullptr;
 	}
 	int matStart = frame * jointCount;
+
+	if (original) return (originalJoints.data())[matStart + id];
 
 	return (allJoints.data())[matStart + id];
 }
