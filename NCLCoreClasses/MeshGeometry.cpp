@@ -44,6 +44,18 @@ enum class GeometryChunkData {
 	dByte,	//Translate from -128 to 127 to a float
 };
 
+const vector<unsigned int> MeshGeometry::GetJointChildren(const unsigned int& jointId) const {
+	vector<unsigned int> children;
+
+	for (unsigned int i = 0; i < jointParents.size(); i++) {
+		if (jointParents.at(i) == jointId) {
+			children.push_back(i);
+		}
+	}
+
+	return children;
+}
+
 void* ReadVertexData(GeometryChunkData dataType, GeometryChunkTypes chunkType, int numVertices) {
 	int numElements = 3;
 

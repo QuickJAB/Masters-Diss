@@ -179,6 +179,8 @@ namespace NCL {
 			return jointNames.at(jointId);
 		}
 
+		const std::vector<unsigned int> GetJointChildren(const unsigned int& jointId) const;
+
 	protected:
 		MeshGeometry();
 		MeshGeometry(const std::string&filename);

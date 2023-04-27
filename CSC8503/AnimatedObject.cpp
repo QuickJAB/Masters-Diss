@@ -79,12 +79,13 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		currentJoint = parents.at(currentJoint);
 	}
 
-	Vector3 rootPos = curAnim->GetJoint(frame, 0).GetPositionVector();
+	
 
+	/*
+	Vector3 rootPos = curAnim->GetJoint(frame, 0).GetPositionVector();
+	
 	for (int i = 0; i < (int)parents.size(); i++) {
 		if (adjustedJoints.at(i)) continue;
-
-		// Adjust the rest of the body
 
 		Vector3 offset = rootPos;
 		int jointId = i;
@@ -98,7 +99,7 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		curAnim->SetJointValue(frame, i, joint);
 		adjustedJoints.at(i) = true;
 	}
-
+	*/
 }
 
 void AnimatedObject::ResetIK() {
@@ -153,7 +154,7 @@ void AnimatedObject::DrawSkeleton() {
 	unsigned int frame = animCon->GetCurrentFrame();
 	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
 
-	for (int i = 0; i < 54; i++) {
+	for (int i = 0; i < parents.size(); i++) {
 		DisplayJointData(i);
 		if (parents.at(i) == -1) continue;
 		
