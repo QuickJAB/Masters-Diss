@@ -13,6 +13,7 @@ https://research.ncl.ac.uk/game/
 namespace NCL {
 	namespace Maths {
 		class Matrix4;
+		class Vector3;
 	}
 
 	class MeshAnimation	{
@@ -41,7 +42,7 @@ namespace NCL {
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
 		void ResetJointValue(unsigned int frame, unsigned int joint);
-		const Maths::Matrix4 GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB);
+		const Maths::Vector3 GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB);
 
 		void FixRootPosition(unsigned int frame, std::vector<int>);
 

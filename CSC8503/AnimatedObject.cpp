@@ -52,28 +52,21 @@ AnimatedObject::~AnimatedObject() {
 }
 
 void AnimatedObject::SolveIK(const Vector3& snapPoint, unsigned int currentJoint, const unsigned int& endJoint) {
-	const vector<Matrix4> bindPose = renderObject->GetMesh()->GetBindPose();
 	MeshAnimation* curAnim = (MeshAnimation*)animCon->GetCurrentAnimation();
 	unsigned int frame = animCon->GetCurrentFrame();
-	const Matrix4 modelMat = GetTransform().GetMatrix() * Matrix4::Rotation(180, Vector3(0, 1, 0));
+	const Matrix4 modelMat = GetTransform().GetMatrix();
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 
-	Vector3 adjustment = bindPose.at(currentJoint).GetPositionVector() - snapPoint;
+	Vector3 offset = modelMat.Inverse() * snapPoint;
 
 	while (currentJoint != endJoint) {
-		//Matrix4 jointWorldSpace = modelMat * bindPose.at(currentJoint);
+		Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
 
-		//curAnim->SetJointValue(frame, currentJoint, Matrix4::Translation(adjustment) * jointWorldSpace);
-		//curAnim->SetJointValue(frame, currentJoint, modelMat.Inverse() * jointWorldSpace);
+		joint.SetPositionVector(offset);
 
-		Matrix4 jointWorldSpace = curAnim->GetJoint(frame, currentJoint);
+		curAnim->SetJointValue(frame, currentJoint, joint);
 
-		std::cout << jointWorldSpace;
-		std::cout << (Matrix4::Translation(snapPoint) * modelMat.Inverse()) << std::endl;
-
-		//jointWorldSpace.SetPositionVector(snapPoint);
-
-		curAnim->SetJointValue(frame, currentJoint, jointWorldSpace);
+		offset += curAnim->GetJointOffset(frame, currentJoint, parents.at(currentJoint));
 
 		currentJoint = parents.at(currentJoint);
 	}

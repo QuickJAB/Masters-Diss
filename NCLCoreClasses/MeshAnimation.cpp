@@ -94,12 +94,12 @@ void MeshAnimation::ResetJointValue(unsigned int frame, unsigned int joint) {
 	allJoints.at(poseJoint) = originalJoints.at(poseJoint);
 }
 
-const Matrix4 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB) {
-	if (frame >= frameCount) return Matrix4();
+const Vector3 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB) {
+	if (frame >= frameCount) return Vector3();
 	int poseJointA = (frame * jointCount) + jointA;
 	int poseJointB = (frame * jointCount) + jointB;
 
-	return originalJoints.at(poseJointB) - originalJoints.at(poseJointA);
+	return originalJoints.at(poseJointB).GetPositionVector() - originalJoints.at(poseJointA).GetPositionVector();
 }
 
 void MeshAnimation::FixRootPosition(unsigned int frame, std::vector<int> parents) {
