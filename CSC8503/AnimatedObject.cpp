@@ -119,7 +119,7 @@ void AnimatedObject::Update(float dt) {
 
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
-			if (closestCollision.rayDistance > 1.0f) {
+			if (closestCollision.rayDistance > 0.3f && closestCollision.rayDistance < 1.0f) {
 				SolveIK( closestCollision.collidedAt, jointChain.first, jointChain.second);
 				reset = false;
 			}
