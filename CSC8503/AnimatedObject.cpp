@@ -96,10 +96,23 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint) {
 void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoint, const unsigned int& frame, const Matrix4& modelMat) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 
-	Vector3 snapPoint = curAnim->GetJoint(frame, endJoint).GetPositionVector();
+	Vector3 offset = curAnim->GetJoint(frame, endJoint).GetPositionVector();
 	
+	Matrix4 temp = curAnim->GetJoint(frame, 0);
+
+
 	for (int i = 0; i < jointChain.size(); i++) {
+		unsigned int currentJoint = jointChain.at(i);
+
+		Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
+
+		offset += curAnim->GetJointOffset(frame, currentJoint, parents.at(currentJoint));
 		
+		joint.SetPositionVector(offset);
+		
+		curAnim->SetJointValue(frame, currentJoint, temp);
+
+		adjusted.at(currentJoint) = true;
 	}
 }
 
