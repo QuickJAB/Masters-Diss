@@ -16,8 +16,8 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	animations.insert(std::make_pair("run", new MeshAnimation("Walk.anm")));
 	curAnim = animations.at("idle");
 	
-	effectorJoints.push_back(51);	// Right leg
-	effectorJoints.push_back(47);	// Left leg
+	effectorJoints.push_back(52);	// Right toe
+	effectorJoints.push_back(48);	// Left toe
 	effectorJoints.push_back(6);	// Jaw
 	effectorJoints.push_back(10);	// Left hand
 	effectorJoints.push_back(29);	// Right hand
@@ -83,23 +83,44 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 
 	// IK on other leg
 	unsigned int altFoot = chainId == 0 ? effectorJoints.at(1) : effectorJoints.at(0);
-	currentJoint = parents.at(parents.at(altFoot));
-	Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
-	offset = curAnim->GetJoint(frame, 0).GetPositionVector() + curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
+	currentJoint = parents.at(parents.at(parents.at(altFoot)));
+	Matrix4 rotation = Matrix4::Rotation(70, Vector3(1, 0, 0));
+	Matrix4 joint = rotation * curAnim->GetJoint(frame, currentJoint, true);
+	offset = curAnim->GetJoint(frame, parents.at(currentJoint)).GetPositionVector() + curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
 	joint.SetPositionVector(offset);
 	curAnim->SetJointValue(frame, currentJoint, joint);
+	adjusted.at(currentJoint) = true;
+
+	currentJoint = parents.at(parents.at(altFoot));
+	offset += rotation * curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
+	joint.SetPositionVector(offset);
+	joint = rotation.Inverse() * joint;
+	curAnim->SetJointValue(frame, currentJoint, joint);
+	adjusted.at(currentJoint) = true;
+
+	currentJoint = parents.at(altFoot);
+	offset += curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
+	joint.SetPositionVector(offset);
+	curAnim->SetJointValue(frame, currentJoint, joint);
+	adjusted.at(currentJoint) = true;
+
+	currentJoint = altFoot;
+	offset += curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
+	joint.SetPositionVector(offset);
+	curAnim->SetJointValue(frame, currentJoint, joint);
+	adjusted.at(currentJoint) = true;
 
 	// IK on rest of body
-	for (int i = 2; i < effectorJoints.size(); i++) {
-		currentJoint = effectorJoints.at(i);
-		vector<int> jointChain;
-		while (!adjusted.at(currentJoint)) {
-			jointChain.insert(jointChain.begin(), currentJoint);
-			currentJoint = parents.at(currentJoint);
-		}
+	//for (int i = 2; i < effectorJoints.size(); i++) {
+	//	currentJoint = effectorJoints.at(i);
+	//	vector<int> jointChain;
+	//	while (!adjusted.at(currentJoint)) {
+	//		jointChain.insert(jointChain.begin(), currentJoint);
+	//		currentJoint = parents.at(currentJoint);
+	//	}
 
-		AdjustJointChain(jointChain, currentJoint, frame, modelMat);
-	}
+	//	AdjustJointChain(jointChain, currentJoint, frame, modelMat);
+	//}
 }
 
 void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoint, const unsigned int& frame, const Matrix4& modelMat) {
