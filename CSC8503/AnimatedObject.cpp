@@ -54,7 +54,7 @@ AnimatedObject::~AnimatedObject() {
 	delete animCon;
 }
 
-void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint) {
+void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& chainId) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	
 	for (int i = 0; i < (int)parents.size(); i++) {
@@ -81,6 +81,15 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint) {
 		currentJoint = parents.at(currentJoint);
 	}
 
+	// IK on other leg
+	unsigned int altFoot = chainId == 0 ? effectorJoints.at(1) : effectorJoints.at(0);
+	currentJoint = parents.at(parents.at(altFoot));
+	Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
+	offset = curAnim->GetJoint(frame, 0).GetPositionVector() + curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
+	joint.SetPositionVector(offset);
+	curAnim->SetJointValue(frame, currentJoint, joint);
+
+	// IK on rest of body
 	for (int i = 2; i < effectorJoints.size(); i++) {
 		currentJoint = effectorJoints.at(i);
 		vector<int> jointChain;
@@ -97,9 +106,6 @@ void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoin
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 
 	Vector3 offset = curAnim->GetJoint(frame, endJoint).GetPositionVector();
-	
-	Matrix4 temp = curAnim->GetJoint(frame, 0);
-
 
 	for (int i = 0; i < jointChain.size(); i++) {
 		unsigned int currentJoint = jointChain.at(i);
@@ -110,7 +116,7 @@ void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoin
 		
 		joint.SetPositionVector(offset);
 		
-		curAnim->SetJointValue(frame, currentJoint, temp);
+		curAnim->SetJointValue(frame, currentJoint, joint);
 
 		adjusted.at(currentJoint) = true;
 	}
@@ -152,7 +158,7 @@ void AnimatedObject::Update(float dt) {
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
 			if (closestCollision.rayDistance > 0.3f && closestCollision.rayDistance < 1.0f) {
-				SolveIK( closestCollision.collidedAt, effector);
+				SolveIK(closestCollision.collidedAt, effector, i);
 				reset = false;
 			}
 		}

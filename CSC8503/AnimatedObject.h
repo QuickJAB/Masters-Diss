@@ -28,7 +28,7 @@ namespace NCL {
 			std::vector<bool> adjusted;
 			MeshAnimation* curAnim;
 
-			void SolveIK(const Vector3& snapPoint, int currentJoint);
+			void SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& chainId);
 			void AdjustJointChain(const std::vector<int> jointChain, const int& endJoint, const unsigned int& frame, const Matrix4& modelMat);
 			void ResetIK();
 			void DrawSkeleton();
