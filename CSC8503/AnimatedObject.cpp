@@ -54,7 +54,7 @@ AnimatedObject::~AnimatedObject() {
 	delete animCon;
 }
 
-void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& chainId) {
+void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& chainId, const float& degrees) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	
 	for (int i = 0; i < (int)parents.size(); i++) {
@@ -84,31 +84,15 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	// IK on other leg
 	unsigned int altFoot = chainId == 0 ? effectorJoints.at(1) : effectorJoints.at(0);
 	currentJoint = parents.at(parents.at(parents.at(altFoot)));
-	Matrix4 rotation = Matrix4::Rotation(70, Vector3(1, 0, 0));
+	Matrix4 rotation = Matrix4::Rotation(degrees, Vector3(1, 0, 0));
 	Matrix4 joint = rotation * curAnim->GetJoint(frame, currentJoint, true);
 	offset = curAnim->GetJoint(frame, parents.at(currentJoint)).GetPositionVector() + curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
 	joint.SetPositionVector(offset);
 	curAnim->SetJointValue(frame, currentJoint, joint);
 	adjusted.at(currentJoint) = true;
-
-	currentJoint = parents.at(parents.at(altFoot));
-	offset += rotation * curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
-	joint.SetPositionVector(offset);
-	joint = rotation.Inverse() * joint;
-	curAnim->SetJointValue(frame, currentJoint, joint);
-	adjusted.at(currentJoint) = true;
-
-	currentJoint = parents.at(altFoot);
-	offset += curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
-	joint.SetPositionVector(offset);
-	curAnim->SetJointValue(frame, currentJoint, joint);
-	adjusted.at(currentJoint) = true;
-
-	currentJoint = altFoot;
-	offset += curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
-	joint.SetPositionVector(offset);
-	curAnim->SetJointValue(frame, currentJoint, joint);
-	adjusted.at(currentJoint) = true;
+	AdjustJoint(parents.at(parents.at(altFoot)), offset, true, rotation);
+	AdjustJoint(parents.at(altFoot), offset);
+	AdjustJoint(altFoot, offset);
 
 	// IK on rest of body
 	//for (int i = 2; i < effectorJoints.size(); i++) {
@@ -118,9 +102,25 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	//		jointChain.insert(jointChain.begin(), currentJoint);
 	//		currentJoint = parents.at(currentJoint);
 	//	}
-
+	//
 	//	AdjustJointChain(jointChain, currentJoint, frame, modelMat);
 	//}
+}
+
+void AnimatedObject::AdjustJoint(const int& joint, Vector3& offset, const bool& hasRotation, const Matrix4& rotation) {
+	vector<int> parents = renderObject->GetMesh()->GetJointParents();
+	unsigned int frame = animCon->GetCurrentFrame();
+
+	if (hasRotation) {
+		offset += rotation * curAnim->GetJointOffset(frame, parents.at(joint), joint);
+	} else {
+		offset += curAnim->GetJointOffset(frame, parents.at(joint), joint);
+	}
+
+	Matrix4 j = curAnim->GetJoint(frame, joint);
+	j.SetPositionVector(offset);
+	curAnim->SetJointValue(frame, joint, j);
+	adjusted.at(joint) = true;
 }
 
 void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoint, const unsigned int& frame, const Matrix4& modelMat) {
@@ -178,8 +178,13 @@ void AnimatedObject::Update(float dt) {
 
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
-			if (closestCollision.rayDistance > 0.3f && closestCollision.rayDistance < 1.0f) {
-				SolveIK(closestCollision.collidedAt, effector, i);
+			if (closestCollision.rayDistance > 0.1f && closestCollision.rayDistance < 0.85f) {
+				
+				// Optimise this maths later
+				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.75f) * 100;
+				if (degrees < 30) degrees = 30;
+				
+				SolveIK(closestCollision.collidedAt, effector, i, degrees);
 				reset = false;
 			}
 		}
