@@ -10,6 +10,8 @@ using namespace NCL;
 using namespace CSC8503;
 
 AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* renderer) {
+	performedIK = false;
+	
 	std::unordered_map<std::string, MeshAnimation*> animations;
 
 	animations.insert(std::make_pair("idle", new MeshAnimation("Idle.anm")));
@@ -99,6 +101,8 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	for (int i = 26; i < 30; i++) {
 		AdjustJoint(i, offset);
 	}
+
+	performedIK = true;
 }
 
 void AnimatedObject::AdjustJoint(const int& joint, Vector3& offset, const bool& hasRotation, const Matrix4& rotation) {
@@ -125,17 +129,6 @@ void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoin
 	for (int jointId : jointChain) {
 		AdjustJoint(jointId, offset);
 	}
-}
-
-void AnimatedObject::ResetIK() {
-	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-
-	unsigned int curFrame = animCon->GetCurrentFrame();
-
-	for (int i = 0; i < parents.size(); i++) {
-		((MeshAnimation*)animCon->GetCurrentAnimation())->ResetJointValue(curFrame, i);
-	}
-
 }
 
 void AnimatedObject::Update(float dt) {
@@ -172,8 +165,9 @@ void AnimatedObject::Update(float dt) {
 				reset = false;
 			}
 		}
-		if (reset) {
-			ResetIK();
+		if (reset && performedIK) {
+			curAnim->ResetAllJoints();
+			performedIK = false;
 		}
 	}
 	else {

@@ -89,11 +89,8 @@ void MeshAnimation::SetJointValue(unsigned int frame, unsigned int joint, Matrix
 	allJoints.at(poseJoint) = value;
 }
 
-void MeshAnimation::ResetJointValue(unsigned int frame, unsigned int joint) {
-	if (frame >= frameCount) return;
-
-	int poseJoint = (frame * jointCount) + joint;
-	allJoints.at(poseJoint) = originalJoints.at(poseJoint);
+void MeshAnimation::ResetAllJoints() {
+	allJoints = originalJoints;
 }
 
 const Vector3 MeshAnimation::GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB) {

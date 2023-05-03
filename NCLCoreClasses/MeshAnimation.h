@@ -41,7 +41,7 @@ namespace NCL {
 		const Maths::Matrix4 GetJoint(unsigned int frame, unsigned int id, bool original = false) const;
 
 		void SetJointValue(unsigned int frame, unsigned int joint, Maths::Matrix4 value);
-		void ResetJointValue(unsigned int frame, unsigned int joint);
+		void ResetAllJoints();
 		const Maths::Vector3 GetJointOffset(unsigned int frame, unsigned int jointA, unsigned int jointB);
 
 		void FixRootPosition(unsigned int frame, std::vector<int>);
