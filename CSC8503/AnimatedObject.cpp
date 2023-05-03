@@ -89,19 +89,12 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	AdjustJoint(altFoot, offset);
 
 	 // IK to drop body
-	offset = curAnim->GetJoint(frame, 0).GetPositionVector(); // Spine -> Jaw
-	for (int i = 1; i < 7; i++) {
+	offset = curAnim->GetJoint(frame, 0).GetPositionVector();
+	for (int i = 1; i < 30; i++) {
+		if (i == 11) i = 26; // Skips the left hand fingers
+		if (i == 7 || i == 26) offset = curAnim->GetJoint(frame, parents.at(i)).GetPositionVector();
 		AdjustJoint(i, offset);
 	}
-	offset = curAnim->GetJoint(frame, 3).GetPositionVector(); // Left arm
-	for (int i = 7; i < 11; i++) {
-		AdjustJoint(i, offset);
-	}
-	offset = curAnim->GetJoint(frame, 3).GetPositionVector(); // Right arm
-	for (int i = 26; i < 30; i++) {
-		AdjustJoint(i, offset);
-	}
-
 	performedIK = true;
 }
 
