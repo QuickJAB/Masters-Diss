@@ -32,7 +32,7 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	GetTransform()
 		.SetScale(Vector3(radius, radius, radius))
 		.SetPosition(position)
-		.SetColOffset(Vector3(0, radius, 0));
+		.SetColOffset(Vector3(0, radius - 0.01f, 0));
 
 	SetRenderObject(new RenderObject(&GetTransform(), renderer->LoadMesh("DummyMesh.msh"), nullptr, renderer->LoadShader("skinning.vert", "character.frag")));
 	GetRenderObject()->SetRigged(true);
@@ -58,7 +58,7 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	const Matrix4 modelMat = GetTransform().GetMatrix();
 
 	// IK to drop leg
-	Vector3 offset = modelMat.Inverse() * snapPoint;
+	Vector3 offset = modelMat.Inverse() * (snapPoint + Vector3(0, 0.04f, 0));
 	while (currentJoint != -1) {
 		Matrix4 joint = curAnim->GetJoint(frame, currentJoint);
 		joint.SetPositionVector(offset);
