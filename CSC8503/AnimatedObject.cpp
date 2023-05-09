@@ -135,7 +135,7 @@ void AnimatedObject::Update(float dt) {
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
 			if (closestCollision.rayDistance > 0.1f && closestCollision.rayDistance < 0.9f) {
-				
+
 				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.8f) * 100;
 				if (degrees < 30) degrees = 30;
 				
@@ -144,6 +144,13 @@ void AnimatedObject::Update(float dt) {
 				auto end = high_resolution_clock::now();
 				auto timeToComplete = duration_cast<milliseconds>(end - start);
 				std::cout << "IK took: " << timeToComplete.count() << "ms\n";
+
+				//float footAdjustment = curAnim->GetJoint(frame, effector).GetPositionVector().y - curAnim->GetJoint(frame, effector, true).GetPositionVector().y;
+				//std::cout << "Foot adjusted by: " << footAdjustment << std::endl << std::endl;
+
+				float tmpA = closestCollision.collidedAt.y;
+				float tmpB = (modelMat * curAnim->GetJoint(frame, effector).GetPositionVector()).y;
+				std::cout << tmpA << ' ' << tmpB << std::endl << std::endl;
 
 				reset = false;
 			}
