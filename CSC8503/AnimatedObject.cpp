@@ -6,8 +6,13 @@
 #include "AnimationController.h"
 #include "MeshAnimation.h"
 
+#include <chrono>
+
 using namespace NCL;
 using namespace CSC8503;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 
 AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* renderer) {
 	performedIK = false;
@@ -56,7 +61,7 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 
 	unsigned int frame = animCon->GetCurrentFrame();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
-
+	
 	// IK to drop leg
 	Vector3 offset = modelMat.Inverse() * (snapPoint + Vector3(0, 0.04f, 0));
 	while (currentJoint != -1) {
@@ -86,6 +91,7 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		if (i == 7 || i == 26) offset = curAnim->GetJoint(frame, parents.at(i)).GetPositionVector();
 		AdjustJoint(i, offset);
 	}
+
 	performedIK = true;
 }
 	
@@ -128,13 +134,17 @@ void AnimatedObject::Update(float dt) {
 
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
-			if (closestCollision.rayDistance > 0.1f && closestCollision.rayDistance < 0.85f) {
+			if (closestCollision.rayDistance > 0.1f && closestCollision.rayDistance < 0.9f) {
 				
-				// Optimise this maths later
-				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.75f) * 100;
+				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.8f) * 100;
 				if (degrees < 30) degrees = 30;
 				
+				auto start = high_resolution_clock::now();
 				SolveIK(closestCollision.collidedAt, effector, i, degrees);
+				auto end = high_resolution_clock::now();
+				auto timeToComplete = duration_cast<milliseconds>(end - start);
+				std::cout << "IK took: " << timeToComplete.count() << "ms\n";
+
 				reset = false;
 			}
 		}
