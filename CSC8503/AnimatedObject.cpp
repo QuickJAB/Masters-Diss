@@ -20,11 +20,6 @@ AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* render
 	
 	effectorJoints.push_back(52);	// Right toe
 	effectorJoints.push_back(48);	// Left toe
-	effectorJoints.push_back(6);	// Jaw
-	effectorJoints.push_back(10);	// Left hand
-	effectorJoints.push_back(29);	// Right hand
-	effectorJoints.push_back(52);	// Right toe
-	effectorJoints.push_back(48);	// Left toe
 
 	animCon = new AnimationController(this, animations);
 
@@ -58,8 +53,6 @@ AnimatedObject::~AnimatedObject() {
 
 void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const unsigned int& chainId, const float& degrees) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-	
-	for (int i = 0; i < (int)parents.size(); i++) adjusted.push_back(false);
 
 	unsigned int frame = animCon->GetCurrentFrame();
 	const Matrix4 modelMat = GetTransform().GetMatrix();
@@ -71,7 +64,6 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 		joint.SetPositionVector(offset);
 		curAnim->SetJointValue(frame, currentJoint, joint);
 		if (parents.at(currentJoint) != -1) offset += curAnim->GetJointOffset(frame, currentJoint, parents.at(currentJoint));
-		adjusted.at(currentJoint) = true;
 		currentJoint = parents.at(currentJoint);
 	}
 
@@ -83,7 +75,6 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	offset = curAnim->GetJoint(frame, parents.at(currentJoint)).GetPositionVector() + curAnim->GetJointOffset(frame, parents.at(currentJoint), currentJoint);
 	joint.SetPositionVector(offset);
 	curAnim->SetJointValue(frame, currentJoint, joint);
-	adjusted.at(currentJoint) = true;
 	AdjustJoint(parents.at(parents.at(altFoot)), offset, true, rotation);
 	AdjustJoint(parents.at(altFoot), offset);
 	AdjustJoint(altFoot, offset);
@@ -97,7 +88,7 @@ void AnimatedObject::SolveIK(const Vector3& snapPoint, int currentJoint, const u
 	}
 	performedIK = true;
 }
-
+	
 void AnimatedObject::AdjustJoint(const int& joint, Vector3& offset, const bool& hasRotation, const Matrix4& rotation) {
 	vector<int> parents = renderObject->GetMesh()->GetJointParents();
 	unsigned int frame = animCon->GetCurrentFrame();
@@ -111,17 +102,6 @@ void AnimatedObject::AdjustJoint(const int& joint, Vector3& offset, const bool& 
 	Matrix4 j = curAnim->GetJoint(frame, joint);
 	j.SetPositionVector(offset);
 	curAnim->SetJointValue(frame, joint, j);
-	adjusted.at(joint) = true;
-}
-
-void AnimatedObject::AdjustJointChain(vector<int> jointChain, const int& endJoint, const unsigned int& frame, const Matrix4& modelMat) {
-	vector<int> parents = renderObject->GetMesh()->GetJointParents();
-
-	Vector3 offset = curAnim->GetJoint(frame, endJoint).GetPositionVector();
-
-	for (int jointId : jointChain) {
-		AdjustJoint(jointId, offset);
-	}
 }
 
 void AnimatedObject::Update(float dt) {
