@@ -121,7 +121,7 @@ void AnimatedObject::Update(float dt) {
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q))
 		DrawSkeleton();
 			
-	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && world != nullptr) {
+	if (!isMoving && GetPhysicsObject()->GetLinearVelocity().y >= -.1f && GetPhysicsObject()->GetLinearVelocity().y <= .1f && world != nullptr) {
 		bool reset = true;
 		for (unsigned int i = 0; i < 2; i++) {
 			unsigned int effector = effectorJoints.at(i);
@@ -135,9 +135,6 @@ void AnimatedObject::Update(float dt) {
 			Debug::DrawLine(jointWorldSpace, closestCollision.collidedAt, { 0, 0, 1, 1 }, 0.1f);
 
 			if (closestCollision.rayDistance > 0.1f && closestCollision.rayDistance < 0.9f) {
-
-				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.8f) * 100;
-				if (degrees < 30) degrees = 30;
 				
 				bool tmp = false;
 				if (!performedIK) {
@@ -147,6 +144,8 @@ void AnimatedObject::Update(float dt) {
 				}
 
 				auto start = high_resolution_clock::now();
+				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.8f) * 100;
+				if (degrees < 30) degrees = 30;
 				SolveIK(closestCollision.collidedAt, effector, i, degrees);
 				auto end = high_resolution_clock::now();
 				auto timeToComplete = duration_cast<microseconds>(end - start);
@@ -154,8 +153,8 @@ void AnimatedObject::Update(float dt) {
 				// 16.67ms is the maximum time allowed for an entire frame to run at 60fps
 				
 				if (tmp) {
-					std::cout << "Adjusted y: " << curAnim->GetJoint(frame, effector).GetPositionVector().y << std::endl << std::endl;
-					std::cout << "IK took: " << timeToComplete.count() << " micro seconds\n";
+					std::cout << "Adjusted y: " << curAnim->GetJoint(frame, effector).GetPositionVector().y << std::endl;
+					std::cout << "IK took: " << timeToComplete.count() << " micro seconds\n\n";
 				}
 
 				reset = false;

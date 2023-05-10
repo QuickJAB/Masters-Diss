@@ -156,15 +156,12 @@ void TutorialGame::InitWorld() {
 	//AddRampToWorld({ 20, 3, 10 }, {5, 10}, {20, 0});
 	//AddRampToWorld({ 30, 3, 10 }, {5, 10}, {30, 0});
 
-	AddStairsToWorld({ 0, 0, 5 }, { 5, 3, 15 }, 10);
-
-	AddStairsToWorld({ -15, 0, 5 }, { 5, 1, 15 }, 20);
-	AddStairsToWorld({ -30, 0, 5 }, { 5, 3, 15 }, 20);
-	AddStairsToWorld({ -45, 0, 5 }, { 5, 5, 15 }, 20);
-
-	AddStairsToWorld({ 15, 0, 5 }, { 5, 2, 10 }, 20);
-	AddStairsToWorld({ 30, 0, 5 }, { 5, 2, 20 }, 20);
-	AddStairsToWorld({ 45, 0, 5 }, { 5, 2, 30 }, 20);
+	AddStairsToWorld({ -15, 2, 5 }, { 5, 0.5f, 15 }, 10);
+	AddStairsToWorld({ 0, 2, 5 }, { 5, 1, 15 }, 10);
+	AddStairsToWorld({ 15, 2, 5 }, { 5, 2, 15 }, 10);
+	AddStairsToWorld({ 30, 2, 5 }, { 5, 3, 15 }, 10);
+	AddStairsToWorld({ 45, 2, 5 }, { 5, 4, 15 }, 10);
+	AddStairsToWorld({ 60, 2, 5 }, { 5, 5, 15 }, 10);
 
 	lockedObject = AddPlayerToWorld({ 0, 5, 0 });
 }
