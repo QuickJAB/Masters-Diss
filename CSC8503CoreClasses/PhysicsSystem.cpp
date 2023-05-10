@@ -145,24 +145,24 @@ void PhysicsSystem::Update(float dt) {
 	float updateTime = t.GetTimeDeltaSeconds();
 
 	//Uh oh, physics is taking too long...
-	if (updateTime > realDT) {
-		realHZ /= 2;
-		realDT *= 2;
-		std::cout << "Dropping iteration count due to long physics time...(now " << realHZ << ")\n";
-	}
-	else if (dt * 2 < realDT) { //we have plenty of room to increase iteration count!
-		int temp = realHZ;
-		realHZ *= 2;
-		realDT /= 2;
+	//if (updateTime > realDT) {
+	//	realHZ /= 2;
+	//	realDT *= 2;
+	//	std::cout << "Dropping iteration count due to long physics time...(now " << realHZ << ")\n";
+	//}
+	//else if (dt * 2 < realDT) { //we have plenty of room to increase iteration count!
+	//	int temp = realHZ;
+	//	realHZ *= 2;
+	//	realDT /= 2;
 
-		if (realHZ > idealHZ) {
-			realHZ = idealHZ;
-			realDT = idealDT;
-		}
-		if (temp != realHZ) {
-			std::cout << "Raising iteration count due to short physics time...(now " << realHZ << ")\n";
-		}
-	}
+	//	if (realHZ > idealHZ) {
+	//		realHZ = idealHZ;
+	//		realDT = idealDT;
+	//	}
+	//	if (temp != realHZ) {
+	//		std::cout << "Raising iteration count due to short physics time...(now " << realHZ << ")\n";
+	//	}
+	//}
 }
 
 void PhysicsSystem::Sleep() {

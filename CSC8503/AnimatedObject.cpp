@@ -12,7 +12,7 @@ using namespace NCL;
 using namespace CSC8503;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
-using std::chrono::milliseconds;
+using std::chrono::microseconds;
 
 AnimatedObject::AnimatedObject(const Vector3& position, GameTechRenderer* renderer) {
 	performedIK = false;
@@ -139,18 +139,24 @@ void AnimatedObject::Update(float dt) {
 				float degrees = ((closestCollision.rayDistance - 0.1f) / 0.8f) * 100;
 				if (degrees < 30) degrees = 30;
 				
+				bool tmp = false;
+				if (!performedIK) {
+					std::cout << "Original y: " << curAnim->GetJoint(frame, effector).GetPositionVector().y << std::endl;
+					std::cout << "Expected y: " << (modelMat.Inverse() * closestCollision.collidedAt).y << std::endl;
+					tmp = true;
+				}
+
 				auto start = high_resolution_clock::now();
 				SolveIK(closestCollision.collidedAt, effector, i, degrees);
 				auto end = high_resolution_clock::now();
-				auto timeToComplete = duration_cast<milliseconds>(end - start);
-				std::cout << "IK took: " << timeToComplete.count() << "ms\n";
+				auto timeToComplete = duration_cast<microseconds>(end - start);
 
-				//float footAdjustment = curAnim->GetJoint(frame, effector).GetPositionVector().y - curAnim->GetJoint(frame, effector, true).GetPositionVector().y;
-				//std::cout << "Foot adjusted by: " << footAdjustment << std::endl << std::endl;
-
-				float tmpA = closestCollision.collidedAt.y;
-				float tmpB = (modelMat * curAnim->GetJoint(frame, effector).GetPositionVector()).y;
-				std::cout << tmpA << ' ' << tmpB << std::endl << std::endl;
+				// 16.67ms is the maximum time allowed for an entire frame to run at 60fps
+				
+				if (tmp) {
+					std::cout << "Adjusted y: " << curAnim->GetJoint(frame, effector).GetPositionVector().y << std::endl << std::endl;
+					std::cout << "IK took: " << timeToComplete.count() << " micro seconds\n";
+				}
 
 				reset = false;
 			}
